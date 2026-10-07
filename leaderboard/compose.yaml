@@ -1,0 +1,22 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - leaderboard-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:8090:8090"
+    environment:
+      REDIS_HOST: redis
+    depends_on:
+      redis:
+        condition: service_healthy
+volumes:
+  leaderboard-data:
